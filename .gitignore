@@ -1,0 +1,6 @@
+*.env
+*/hf_cache
+*/FM5_0
+*.idea
+old_notebooks/*
+*.venv
