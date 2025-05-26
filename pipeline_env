@@ -1,0 +1,27 @@
+# .env
+
+DOCUMENT=../pdfs/FM5_0.pdf
+
+BASE_MODEL=QuantFactory/Llama-3.2-1B-GGUF
+SPECIFIC_MODEL=Llama-3.2-1B.Q8_0.gguf
+CACHE_DIR=hf_cache
+
+HF_API_KEY=hugging_face_hub_key_goes_here_without_quotes
+OAI_API_KEY=openai_key_goes_here_without_quotes
+
+LORA_R=8
+LORA_ALPHA=16
+LORA_MODULES=q_proj,v_proj
+LORA_DROPOUT=0.05
+LORA_BIAS=none
+
+CHUNK_SIZE=512
+CHUNK_STRIDE=512
+
+OPENAI_MODEL=gpt-4o-mini
+TEMPERATURE=0.4
+QA_PROMPT="Read the passage and emit exactly ONE question/answer pair with source information: question – a factual question (5‑25 words). answer – verbatim answer text from the passage (≤ 50 words)."
+NUM_WORKERS=20
+MAX_API_CALLS=500
+
+SYS_PROMPT="You are an assistant that gives expert advice on U.S. Army Doctrine. Leverage the following context to answer the user's question. "

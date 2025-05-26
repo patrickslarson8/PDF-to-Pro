@@ -1,0 +1,4 @@
+# .env
+
+HF_API_KEY=hugging_face_key_goes_here_without_quotes
+OAI_API_KEY=openai_key_goes_here_without_quotes
