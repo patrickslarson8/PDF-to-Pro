@@ -25,8 +25,8 @@ class Ingestor:
         self.pipeline_options.table_structure_options.do_cell_matching = False
         self.pipeline_options.ocr_options.lang = ["en"]
         self.pipeline_options.accelerator_options = AcceleratorOptions(
-            num_threads=8,
-            device=AcceleratorDevice.CUDA
+            num_threads = 8,
+            device      = AcceleratorDevice.CUDA
         )
 
         self.doc_converter = DocumentConverter(

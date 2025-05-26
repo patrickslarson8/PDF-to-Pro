@@ -8,8 +8,8 @@ class Chunker:
         self.tokenizer    = tokenizer
 
     def chunk_text(self, text_path: Path, chunks_path: Path):
-        text = text_path.read_text(encoding='utf-8')
-        enc = self.tokenizer(text)
+        text   = text_path.read_text(encoding='utf-8')
+        enc    = self.tokenizer(text)
         tokens = enc.input_ids
 
         chunks = []

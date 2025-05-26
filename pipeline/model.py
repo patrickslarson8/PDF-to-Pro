@@ -216,7 +216,8 @@ class LLM:
 
         early_stopping = EarlyStoppingCallback(
             early_stopping_patience  = 2,
-            early_stopping_threshold = 0.001  )
+            early_stopping_threshold = 0.001
+        )
 
         trainer = Seq2SeqTrainer(
             model         = self.lora_model,
@@ -225,62 +226,8 @@ class LLM:
             eval_dataset  = test_ds,
             data_collator = data_collator,
             callbacks     = [early_stopping],
-            compute_metrics = self.compute_metrics,
         )
         trainer.train()
-
-    def compute_metrics(self, eval_preds: list) -> dict:
-        """
-        Uses huggingface evaluation metrics to compute meteor score. The trainer will
-        already return loss so that is not calculated.
-        :param eval_preds: Batch of predictions.
-        :return: Dictionary with metrics computed.
-        """
-        if self.meteor is None:
-            import evaluate
-            self.meteor = evaluate.load("meteor")
-            accuracy = evaluate.load("accuracy")
-
-        preds = eval_preds.predictions
-        labels = eval_preds.label_ids
-
-        # sometimes preds is a tuple (pred_ids, scores); take only the IDs
-        if isinstance(preds, tuple):
-            preds = preds[0]
-
-        # convert to Python lists of ints
-        pred_seqs = preds.tolist()
-        label_seqs = labels.tolist()
-
-        cleaned_preds = []
-        cleaned_labels = []
-
-        for p_seq, l_seq in zip(pred_seqs, label_seqs):
-            # 1) drop leading -100 in labels, and same number of tokens in preds
-            start = 0
-            while start < len(l_seq) and l_seq[start] == -100:
-                start += 1
-            cleaned_preds.append(p_seq[start:])
-            cleaned_labels.append(l_seq[start:])
-
-        for cleaned_prediction in cleaned_preds:
-            while cleaned_prediction and cleaned_prediction[-1] == -100:
-                cleaned_prediction.pop()
-
-        for cleaned_label in cleaned_labels:
-            while cleaned_label and cleaned_label[-1] == -100:
-                cleaned_label.pop()
-
-        decoded_preds = self.tokenizer.batch_decode(cleaned_preds, skip_special_tokens=True)
-        decoded_labels = self.tokenizer.batch_decode(cleaned_labels, skip_special_tokens=True)
-
-        # acc = accuracy.compute(decoded_preds, decoded_labels)
-        meteor_score = self.meteor.compute(predictions=decoded_preds, references=decoded_labels)
-
-        return {
-            "meteor": meteor_score["meteor"],
-            # "f1": avg_f1
-        }
 
     def inference(self, sys_prompt: str, contexts: list, query: str) -> str:
         """

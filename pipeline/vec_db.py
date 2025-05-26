@@ -10,7 +10,7 @@ class VectorDB:
         collection: Database object.
     """
     def __init__(self, name, chunk_path):
-        self.client = chromadb.EphemeralClient()
+        self.client     = chromadb.EphemeralClient()
         self.collection = self.client.get_or_create_collection(name=name)
         self._fill_db(self._get_chunks(chunk_path))
 

@@ -4,8 +4,8 @@ import shutil
 from dotenv import load_dotenv
 from pathlib import Path
 
-from pipeline.model import LLM
-from pipeline.vec_db import VectorDB
+from model import LLM
+from vec_db import VectorDB
 
 
 def get_lora_config():
