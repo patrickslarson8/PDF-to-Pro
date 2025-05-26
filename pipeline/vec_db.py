@@ -23,12 +23,6 @@ class VectorDB:
         for chunk in chunks:
             self.collection.upsert(
                 documents=[chunk["text"]],
-                metadatas=[{
-                    # "section_hierarchy": "/".join(chunk["section_hierarchy"]),
-                    # "page_start": chunk["page_start"],
-                    # "page_end": chunk["page_end"],
-                    "chunk_id": chunk["chunk_id"]
-                }],
                 ids=[chunk["chunk_id"]]
             )
 
@@ -58,7 +52,6 @@ class VectorDB:
 
         contexts = []
         for i, doc in enumerate(results["documents"][0]):
-            # metadata = results["metadatas"][0][i]
             context = f"\n\n{doc}"
             contexts.append(context)
 
