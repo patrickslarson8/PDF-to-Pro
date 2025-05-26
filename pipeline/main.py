@@ -25,6 +25,8 @@ def _get_gguf_path(search_root: Path, specific_model: str):
 
 if __name__ == "__main__":
 
+    print("Loading application...")
+
     load_dotenv()
 
     DOCUMENT       = Path(os.environ["DOCUMENT"])
@@ -40,6 +42,8 @@ if __name__ == "__main__":
 
     os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
+    print("Done.")
+    print("Scanning PDF...")
     if not RAW_TEXT.exists():
         from pipeline.ingest import Ingestor
         RAW_TEXT.parent.mkdir(parents=True, exist_ok=True)
@@ -50,6 +54,8 @@ if __name__ == "__main__":
             RAW_TEXT.unlink(missing_ok=True)
             raise e
 
+    print("Done.")
+    print("Loading tokenizer...")
     model = None
     needs_finetuning = False
     if not MODEL_DIR.exists():
@@ -78,7 +84,8 @@ if __name__ == "__main__":
                     SPECIFIC_MODEL,
                     MODEL_DIR,
                     CACHE_DIR)
-
+    print("Done.")
+    print("Chunking raw text...")
     if not CHUNKED_DATA.exists():
         needs_finetuning = True
         try:
@@ -92,6 +99,8 @@ if __name__ == "__main__":
             CHUNKED_DATA.unlink(missing_ok=True)
             raise e
 
+    print("Done.")
+    print("Creating training data with OpenAI...")
     if not QA_DATA.exists():
         needs_finetuning = True
         try:
@@ -108,6 +117,8 @@ if __name__ == "__main__":
             QA_DATA.unlink(missing_ok=True)
             raise e
 
+    print("Done.")
+    print("Training model...")
     needs_finetuning = True
     if needs_finetuning:
         ds_train, ds_test = model.load_dataset(QA_DATA.as_posix(),
@@ -115,8 +126,12 @@ if __name__ == "__main__":
                                                test_portion = 0.1)
         model.train(ds_train, ds_test)
 
+    print("Done.")
+    print("Loading vector database...")
     db = VectorDB(DOCUMENT.stem, CHUNKED_DATA)
 
+    print("Done.")
+    print("Ready for questions.")
     while True:
         query = input(f"How can I help with {DOCUMENT.stem}?\n")
         if query == 'q':
