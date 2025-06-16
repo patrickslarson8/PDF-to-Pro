@@ -1,4 +1,6 @@
-# PDF Fine-tuned LLM
+# Turn any PDF into a private expert you can interrogate.
+PDFs are static; turning them into an interactive Q&A expert eliminates endless scrolling and Ctrl-F hunts.
+
 ## Repository Structure
 The repository is split into three main parts:
 1) notebooks: The jupyter notebooks I used to develop the pipeline. These contain
