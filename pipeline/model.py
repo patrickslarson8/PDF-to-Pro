@@ -1,3 +1,5 @@
+import random
+
 from huggingface_hub import hf_hub_download
 from torch import bfloat16
 from trl import DataCollatorForCompletionOnlyLM
@@ -156,7 +158,30 @@ class LLM:
             truncation=True,
             max_length=self.max_len)
 
-    def load_dataset(self, path: str, sys_prompt: str, test_portion: float=0.2) -> tuple[Dataset, Dataset]:
+    def maybe_corrupt(self,
+                      example,
+                      all_ctx,
+                      noise_prob,
+                      empty_prob,
+                      rng):
+        """
+        With probability *noise_prob* either drop the context
+        or swap in a random, unrelated one.
+        """
+        if rng.random() < noise_prob:
+            if rng.random() < empty_prob:
+                example["context"] = ""  # omit context
+            else:
+                example["context"] = rng.choice(all_ctx)  # wrong context
+        return example
+
+    def load_dataset(self,
+                     path: str,
+                     sys_prompt: str,
+                     test_portion: float=0.2,
+                     noise_prob: float=0.15,
+                     empty_prob: float=0.5,
+                     seed: int=42) -> tuple[Dataset, Dataset]:
         """
         Loads, processes, and tokenizes the dataset.
         :param path: local path to dataset.
@@ -166,10 +191,23 @@ class LLM:
         data if split = 0.0.
         """
         raw_ds    = load_dataset("json", data_files=path, split="train", num_proc=8)
-        prompt_ds = raw_ds.map(self.row_to_prompt,
+
+        rng = random.Random(seed)
+        all_ctx = raw_ds["context"]
+
+        maybe_corrupt_ds = raw_ds.map(
+            self.maybe_corrupt,
+            fn_kwargs={"all_ctx": all_ctx,
+                       "noise_prob": noise_prob,
+                       "empty_prob": empty_prob,
+                       "rng": rng
+           },
+            desc="Injecting noisy / missing context"
+        )
+
+        prompt_ds = maybe_corrupt_ds.map(self.row_to_prompt,
                                fn_kwargs={'sys_prompt': sys_prompt},
-                               remove_columns=raw_ds.column_names
-                               )
+                               remove_columns=maybe_corrupt_ds.column_names )
         tok_ds    = prompt_ds.map(self.tokenize, batched=True)
         splits    = tok_ds.train_test_split(test_portion, seed=42)
         ds_train  = splits["train"]

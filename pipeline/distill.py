@@ -86,21 +86,21 @@ class Getter:
         :return: None
         """
         chunks = self.load_chunks(chunked_dir)
-        chunks = chunks[:max_calls]
         responses = []
 
         with open(output_path, "w", encoding="utf-8") as outfile:
-            with ThreadPoolExecutor(max_workers=num_workers) as executor:
-                futures = [
-                    executor.submit(self._call_openai,
-                                    chunk,
-                                    self.model,
-                                    self.prompt)
-                    for chunk in chunks
-                ]
-                for i, f in enumerate(as_completed(futures)):
-                    result = f.result()
-                    if result:
-                        outfile.write(json.dumps(result, ensure_ascii=False) + "\n")
-                        outfile.flush()
-                        responses.append(result)
+            while len(responses) < max_calls and len(responses) < len(2 * chunks):
+                with ThreadPoolExecutor(max_workers=num_workers) as executor:
+                    futures = [
+                        executor.submit(self._call_openai,
+                                        chunk,
+                                        self.model,
+                                        self.prompt)
+                        for chunk in chunks
+                    ]
+                    for i, f in enumerate(as_completed(futures)):
+                        result = f.result()
+                        if result:
+                            outfile.write(json.dumps(result, ensure_ascii=False) + "\n")
+                            outfile.flush()
+                            responses.append(result)
